@@ -1,5 +1,22 @@
+
 "use client";
 import { useState, useEffect } from "react";
+
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBIkFKD9Y-0lMks392c3bK7XkwMvmWohss",
+  authDomain: "stock-app-772b7.firebaseapp.com",
+  projectId: "stock-app-772b7",
+  storageBucket: "stock-app-772b7.firebasestorage.app",
+  messagingSenderId: "524050736543",
+  appId: "1:524050736543:web:aa83fc1053e58c927c89aa",
+  measurementId: "G-510VTWYHWS"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export default function Home() {
   const [data, setData] = useState([]);
