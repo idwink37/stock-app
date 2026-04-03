@@ -38,44 +38,48 @@ export default function Home() {
   const stock = getStock();
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 20, maxWidth: 600, margin: "auto" }}>
       <h1>📦 창고관리</h1>
 
-      <div style={{ marginBottom: 20 }}>
-        <input placeholder="품명"
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <input style={{ padding: 10 }} placeholder="품명"
           value={form.name}
           onChange={(e) => setForm({...form, name: e.target.value})} />
 
-        <input placeholder="장"
+        <input style={{ padding: 10 }} placeholder="장"
           value={form.length}
           onChange={(e) => setForm({...form, length: e.target.value})} />
 
-        <input placeholder="폭"
+        <input style={{ padding: 10 }} placeholder="폭"
           value={form.width}
           onChange={(e) => setForm({...form, width: e.target.value})} />
 
-        <input placeholder="고"
+        <input style={{ padding: 10 }} placeholder="고"
           value={form.height}
           onChange={(e) => setForm({...form, height: e.target.value})} />
 
-        <input placeholder="수량" type="number"
+        <input style={{ padding: 10 }} placeholder="수량" type="number"
           value={form.qty}
           onChange={(e) => setForm({...form, qty: e.target.value})} />
 
-        <select
+        <select style={{ padding: 10 }}
           value={form.type}
           onChange={(e) => setForm({...form, type: e.target.value})}>
           <option>입고</option>
           <option>출고</option>
         </select>
 
-        <button onClick={addItem}>추가</button>
+        <button style={{ padding: 12, background: "#333", color: "#fff" }}
+          onClick={addItem}>
+          추가
+        </button>
       </div>
 
-      <h2>📊 재고</h2>
+      <h2 style={{ marginTop: 30 }}>📊 재고</h2>
+
       <ul>
         {Object.entries(stock).map(([key, value]) => (
-          <li key={key}>
+          <li key={key} style={{ padding: 8 }}>
             {key} → {value}
           </li>
         ))}
