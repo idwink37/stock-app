@@ -1,8 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const [data, setData] = useState([]);
   const [items, setItems] = useState([]);
+
   const [form, setForm] = useState({
     name: "",
     length: "",
@@ -12,22 +14,33 @@ export default function Home() {
     type: "입고",
   });
 
+ const SHEET_URL = "https://docs.google.com/spreadsheets/d/1pFZynlAmIeT_He-0Eg43Anp_QLEMdAkj/export?format=csv";
+
+  useEffect(() => {
+    fetch(SHEET_URL)
+      .then(res => res.text())
+      .then(text => {
+        const rows = text.split("\n").slice(1);
+        const parsed = rows.map(row => {
+          const [name, length, width, height] = row.split(",");
+          return { name, length, width, height };
+        });
+        setData(parsed);
+      });
+  }, []);
+
+  const names = [...new Set(data.map(d => d.name))];
+
+  const filtered = data.filter(d => d.name === form.name);
+
   const addItem = () => {
     if (!form.name || !form.qty) return;
     setItems([...items, form]);
-    setForm({
-      name: "",
-      length: "",
-      width: "",
-      height: "",
-      qty: "",
-      type: "입고",
-    });
   };
 
   const getStock = () => {
     const map = {};
-    items.forEach((item) => {
+    items.forEach(item => {
       const key = `${item.name}-${item.length}-${item.width}-${item.height}`;
       if (!map[key]) map[key] = 0;
       map[key] += item.type === "입고" ? +item.qty : -item.qty;
@@ -42,44 +55,59 @@ export default function Home() {
       <h1>📦 창고관리</h1>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <input style={{ padding: 10 }} placeholder="품명"
-          value={form.name}
-          onChange={(e) => setForm({...form, name: e.target.value})} />
 
-        <input style={{ padding: 10 }} placeholder="장"
-          value={form.length}
-          onChange={(e) => setForm({...form, length: e.target.value})} />
+        {/* 품명 드롭다운 */}
+        <select value={form.name}
+          onChange={(e) => setForm({...form, name: e.target.value})}>
+          <option value="">품명 선택</option>
+          {names.map((n, i) => (
+            <option key={i}>{n}</option>
+          ))}
+        </select>
 
-        <input style={{ padding: 10 }} placeholder="폭"
-          value={form.width}
-          onChange={(e) => setForm({...form, width: e.target.value})} />
+        {/* 규격 자동 표시 */}
+        <select value={form.length}
+          onChange={(e) => setForm({...form, length: e.target.value})}>
+          <option value="">장 선택</option>
+          {filtered.map((f, i) => (
+            <option key={i}>{f.length}</option>
+          ))}
+        </select>
 
-        <input style={{ padding: 10 }} placeholder="고"
-          value={form.height}
-          onChange={(e) => setForm({...form, height: e.target.value})} />
+        <select value={form.width}
+          onChange={(e) => setForm({...form, width: e.target.value})}>
+          <option value="">폭 선택</option>
+          {filtered.map((f, i) => (
+            <option key={i}>{f.width}</option>
+          ))}
+        </select>
 
-        <input style={{ padding: 10 }} placeholder="수량" type="number"
+        <select value={form.height}
+          onChange={(e) => setForm({...form, height: e.target.value})}>
+          <option value="">고 선택</option>
+          {filtered.map((f, i) => (
+            <option key={i}>{f.height}</option>
+          ))}
+        </select>
+
+        <input placeholder="수량" type="number"
           value={form.qty}
           onChange={(e) => setForm({...form, qty: e.target.value})} />
 
-        <select style={{ padding: 10 }}
+        <select
           value={form.type}
           onChange={(e) => setForm({...form, type: e.target.value})}>
           <option>입고</option>
           <option>출고</option>
         </select>
 
-        <button style={{ padding: 12, background: "#333", color: "#fff" }}
-          onClick={addItem}>
-          추가
-        </button>
+        <button onClick={addItem}>추가</button>
       </div>
 
       <h2 style={{ marginTop: 30 }}>📊 재고</h2>
-
       <ul>
         {Object.entries(stock).map(([key, value]) => (
-          <li key={key} style={{ padding: 8 }}>
+          <li key={key}>
             {key} → {value}
           </li>
         ))}
