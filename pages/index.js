@@ -11,9 +11,7 @@ export default function Home() {
     name: "",
     name_manual: "",
     shape: "",
-    length: "",
-    width: "",
-    height: "",
+    spec: "",
     qty: "",
     type: "입고",
   });
@@ -24,36 +22,49 @@ export default function Home() {
     fetch(SHEET_URL)
       .then(res => res.text())
       .then(text => {
-        const rows = text.split("\n").slice(1);
+        const rows = text.trim().split("\n").slice(1);
         const parsed = rows.map(row => {
           const [category, name, shape, length, width, height] = row.split(",");
-          return { category, name, shape, length, width, height };
+          return {
+            category: category?.trim(),
+            name: name?.trim(),
+            shape: shape?.trim(),
+            length: length?.trim(),
+            width: width?.trim(),
+            height: height?.trim()
+          };
         });
         setData(parsed);
       });
   }, []);
 
-  // 필터
   const categories = [...new Set(data.map(d => d.category))];
-  const names = [...new Set(data.filter(d => d.category === form.category).map(d => d.name))];
-  const shapes = [...new Set(data.filter(d => d.name === form.name).map(d => d.shape))];
 
-  const filtered = data.filter(d =>
-    d.category === form.category &&
-    d.name === form.name &&
-    d.shape === form.shape
-  );
+  const names = [...new Set(
+    data.filter(d => d.category === form.category)
+        .map(d => d.name)
+  )];
+
+  const shapes = [...new Set(
+    data.filter(d => d.category === form.category && d.name === form.name)
+        .map(d => d.shape)
+  )];
+
+  const specs = data
+    .filter(d =>
+      d.category === form.category &&
+      d.name === form.name &&
+      d.shape === form.shape
+    )
+    .map(d => `${d.length} x ${d.width} x ${d.height || "-"}`);
 
   const addItem = () => {
     const name = form.mode === "직접입력" ? form.name_manual : form.name;
-
-    if (!name || !form.qty) return;
+    if (!name || !form.qty || !form.spec) return;
 
     const newItem = {
       name,
-      length: form.length,
-      width: form.width,
-      height: form.height,
+      spec: form.spec,
       qty: form.qty,
       type: form.type
     };
@@ -64,7 +75,7 @@ export default function Home() {
   const getStock = () => {
     const map = {};
     items.forEach(item => {
-      const key = `${item.name}-${item.length}-${item.width}-${item.height}`;
+      const key = `${item.name}-${item.spec}`;
       if (!map[key]) map[key] = 0;
       map[key] += item.type === "입고" ? +item.qty : -item.qty;
     });
@@ -79,30 +90,23 @@ export default function Home() {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 
-        {/* 입력 방식 */}
         <select value={form.mode}
           onChange={(e) => setForm({...form, mode: e.target.value})}>
           <option>선택입력</option>
           <option>직접입력</option>
         </select>
 
-        {/* 카테고리 */}
         <select value={form.category}
           onChange={(e) => setForm({...form, category: e.target.value})}>
-          <option value="">카테고리 선택</option>
-          {categories.map((c, i) => (
-            <option key={i}>{c}</option>
-          ))}
+          <option value="">카테고리</option>
+          {categories.map((c, i) => <option key={i}>{c}</option>)}
         </select>
 
-        {/* 품명 */}
         {form.mode === "선택입력" ? (
           <select value={form.name}
             onChange={(e) => setForm({...form, name: e.target.value})}>
-            <option value="">품명 선택</option>
-            {names.map((n, i) => (
-              <option key={i}>{n}</option>
-            ))}
+            <option value="">품명</option>
+            {names.map((n, i) => <option key={i}>{n}</option>)}
           </select>
         ) : (
           <input placeholder="품명 직접입력"
@@ -110,38 +114,16 @@ export default function Home() {
             onChange={(e) => setForm({...form, name_manual: e.target.value})} />
         )}
 
-        {/* 형상 */}
         <select value={form.shape}
           onChange={(e) => setForm({...form, shape: e.target.value})}>
-          <option value="">형상 선택</option>
-          {shapes.map((s, i) => (
-            <option key={i}>{s}</option>
-          ))}
+          <option value="">형상</option>
+          {shapes.map((s, i) => <option key={i}>{s}</option>)}
         </select>
 
-        {/* 규격 */}
-        <select value={form.length}
-          onChange={(e) => setForm({...form, length: e.target.value})}>
-          <option value="">장 선택</option>
-          {filtered.map((f, i) => (
-            <option key={i}>{f.length}</option>
-          ))}
-        </select>
-
-        <select value={form.width}
-          onChange={(e) => setForm({...form, width: e.target.value})}>
-          <option value="">폭 선택</option>
-          {filtered.map((f, i) => (
-            <option key={i}>{f.width}</option>
-          ))}
-        </select>
-
-        <select value={form.height}
-          onChange={(e) => setForm({...form, height: e.target.value})}>
-          <option value="">고 선택</option>
-          {filtered.map((f, i) => (
-            <option key={i}>{f.height}</option>
-          ))}
+        <select value={form.spec}
+          onChange={(e) => setForm({...form, spec: e.target.value})}>
+          <option value="">규격 선택</option>
+          {specs.map((s, i) => <option key={i}>{s}</option>)}
         </select>
 
         <input placeholder="수량" type="number"
